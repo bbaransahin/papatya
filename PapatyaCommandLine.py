@@ -3,6 +3,8 @@ import tensorflow as tf
 
 class PapatyaLayer:
     def __init__(self, name, kind, kerasLayer):
+        # name is simply id of the layer
+        # choose one for kind {"input","hidden","output"}
         self.name = name
         self.kind = kind
         self.kerasLayer = kerasLayer
@@ -34,7 +36,7 @@ class PapatyaModel:
 class PapatyaCLI:
     def __init__(self):
         print("PapatyaCLI v1")
-        self.layers = []
+        pModel = PapatyaModel(input("Papatya Model Name: "))
     def executeCommand(self, command):
         command = command.split(' ')
         if(command[0] == "help"):
@@ -43,6 +45,12 @@ class PapatyaCLI:
             if(command[1] == "layer"):
                 if(command[2] == "input"):
                     inputs = tf.keras.Input(shape=self.getShape(command[3]))
+                    pLayer = PapatyaLayer(input("layer name: "), "input", inputs)
+                    pModel.addLayer(pLayer)
+                elif(comman[2] == "dense"):
+                    dense = tf.keras.layers.Dense(int(command[3]), activation="relu")
+                    pLayer = PapatyaLayer(input("layer name: "), "hidden", dense)
+                    pModel.addLayer(pLayer)
         elif(command[0] == "init"):
             pass
         elif(command[0] == "exit"):
