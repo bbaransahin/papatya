@@ -1,4 +1,6 @@
-#BUG: There is a bug in exit command
+#TODO: implement convolutional layers
+#TODO: implement a command that shows the architecture of the model without building it
+#TODO: implement a command to edit variables of layers and model
 import tensorflow as tf
 
 class PapatyaLayer:
@@ -63,15 +65,13 @@ class PapatyaCLI:
                     output = tf.keras.layers.Dense(int(command[3]), activation="softmax")
                     pLayer = PapatyaLayer(input("layer name: "), "output", output)
                     self.pModel.addLayer(pLayer)
+                elif(command[2] == "conv"):
+                    pass
         elif(command[0] == "connect" and command[2] == "to"):
             self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
             self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
         elif(command[0] == "build"):
             self.pModel.build()
-        elif(command[0] == "init"):
-            pass
-        elif(command[0] == "exit"):
-            isRun = False
     def getShape(self, shape):
         shape = shape.split('x')
         returnShape = []
@@ -79,9 +79,10 @@ class PapatyaCLI:
             returnShape.append(int(i))
         return returnShape
 
-isRun = True
 cli = PapatyaCLI()
 
-while(isRun):
+while(True):
     userInput = input(">>")
+    if(userInput == "exit"):
+        break
     cli.executeCommand(userInput)
