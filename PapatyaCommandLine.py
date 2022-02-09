@@ -65,19 +65,37 @@ class PapatyaCLI:
                     output = tf.keras.layers.Dense(int(command[3]), activation="softmax")
                     pLayer = PapatyaLayer(input("layer name: "), "output", output)
                     self.pModel.addLayer(pLayer)
-                elif(command[2] == "conv"):
-                    pass
+                elif(command[2] == "conv1d"):
+                    filters = int(command[3])
+                    kernel_size = command[4]
+                    conv1D = tf.keras.layers.Conv1D(filters, kernel_size, activation="relu")
+                    pLayer = PapatyaLayer(input("layer name: "), "hidden", conv1D)
+                    self.pModel.addLayer(pLayer)
+                elif(command[2] == "conv2d"):
+                    filters = int(command[3])
+                    kernel_size = self.getShape(command[4])
+                    conv2D = tf.keras.layers.Conv2D(filters, kernel_size, activation="relu")
+                    pLayer = PapatyaLayer(input("layer name: "), "hidden", conv2D)
+                    self.pModel.addLayer(pLayer)
+                elif(command[2] == "flatten"):
+                    flatten = tf.keras.layers.Flatten()
+                    pLayer = PapatyaLayer(input("layer name: "), "hidden", flatten)
+                    self.pModel.addLayer(pLayer)
         elif(command[0] == "connect" and command[2] == "to"):
             self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
             self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
         elif(command[0] == "build"):
             self.pModel.build()
+        elif(command[0] == "list"):
+            if(command[1] == "layers"):
+                for layer in self.pModel.layers:
+                    print(layer.name, layer.kind)
     def getShape(self, shape):
         shape = shape.split('x')
         returnShape = []
         for i in shape:
             returnShape.append(int(i))
-        return returnShape
+        return tuple(returnShape)
 
 cli = PapatyaCLI()
 
