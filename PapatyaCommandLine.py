@@ -1,4 +1,3 @@
-#TODO: implement convolutional layers
 #TODO: implement a command that shows the architecture of the model without building it
 #TODO: implement a command to edit variables of layers and model
 import tensorflow as tf
@@ -30,18 +29,26 @@ class PapatyaModel:
         for l in self.layers:
             if(l.name == name):
                 return l
+        print("Couldn't find the layer named as "+name)
+        return None
     def findLayerByKind(self, kind):
         for l in self.layers:
             if(l.kind == kind):
                 return l
+        print("Couldn't find the layer in kind of "+kind)
+        return None
     def build(self):
-        self.inputs = self.findLayerByKind("input").kerasLayer
-        for l in self.layers:
-            if(not l.nextLayer == None):
-                self.connectTwoLayer(l,self.findLayerByName(l.nextLayer))
-        self.outputs = self.findLayerByKind("output").kerasLayer
-        self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=self.outputs)
-        print(self.kerasModel.summary())
+        try:
+            self.inputs = self.findLayerByKind("input").kerasLayer
+            for l in self.layers:
+                if(not l.nextLayer == None):
+                    self.connectTwoLayer(l,self.findLayerByName(l.nextLayer))
+            self.outputs = self.findLayerByKind("output").kerasLayer
+            self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=self.outputs)
+            print(self.kerasModel.summary())
+        except Exception as e:
+            print("There is a problem while building the Papatya Model, here is the error message:")
+            print(e)
 
 class PapatyaCLI:
     def __init__(self):
@@ -52,50 +59,77 @@ class PapatyaCLI:
         if(command[0] == "help"):
             pass
         elif(command[0] == "add"):
-            if(command[1] == "layer"):
-                if(command[2] == "input"):
-                    inputs = tf.keras.Input(shape=self.getShape(command[3]))
-                    pLayer = PapatyaLayer(input("layer name: "), "input", inputs)
-                    self.pModel.addLayer(pLayer)
-                elif(command[2] == "dense"):
-                    dense = tf.keras.layers.Dense(int(command[3]), activation="relu")
-                    pLayer = PapatyaLayer(input("layer name: "), "hidden", dense)
-                    self.pModel.addLayer(pLayer)
-                elif(command[2] == "output"):
-                    output = tf.keras.layers.Dense(int(command[3]), activation="softmax")
-                    pLayer = PapatyaLayer(input("layer name: "), "output", output)
-                    self.pModel.addLayer(pLayer)
-                elif(command[2] == "conv1d"):
-                    filters = int(command[3])
-                    kernel_size = command[4]
-                    conv1D = tf.keras.layers.Conv1D(filters, kernel_size, activation="relu")
-                    pLayer = PapatyaLayer(input("layer name: "), "hidden", conv1D)
-                    self.pModel.addLayer(pLayer)
-                elif(command[2] == "conv2d"):
-                    filters = int(command[3])
-                    kernel_size = self.getShape(command[4])
-                    conv2D = tf.keras.layers.Conv2D(filters, kernel_size, activation="relu")
-                    pLayer = PapatyaLayer(input("layer name: "), "hidden", conv2D)
-                    self.pModel.addLayer(pLayer)
-                elif(command[2] == "flatten"):
-                    flatten = tf.keras.layers.Flatten()
-                    pLayer = PapatyaLayer(input("layer name: "), "hidden", flatten)
-                    self.pModel.addLayer(pLayer)
-        elif(command[0] == "connect" and command[2] == "to"):
-            self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
-            self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
+            if(command[1] == "layer" or command[1] == "l"):
+                try:
+                    if(command[2] == "input"):
+                        name = input("layer name: ")
+                        self.addInputLayer(name, self.getShape(command[3]))
+                    elif(command[2] == "dense"):
+                        name = input("layer name: ")
+                        self.addDenseLayer(name, int(command[3]))
+                    elif(command[2] == "output"):
+                        name = input("layer name: ")
+                        self.addOutputLayer(name, int(command[3]))
+                    elif(command[2] == "conv1d"):
+                        name = input("layer name: ")
+                        self.addConv1DLayer(name, int(command[3]), int(command[4]))
+                    elif(command[2] == "conv2d"):
+                        name = input("layer name: ")
+                        self.addConv2DLayer(name, int(command[3]), self.getShape(command[4]))
+                    elif(command[2] == "flatten"):
+                        name = input("layer name: ")
+                        self.addFlattenLayer(name)
+                    else:
+                        print("couldn't find a layer classified as "+command[2]+", please try something else.")
+                except Exception as e:
+                    print("There is a problem while creating or adding the layer, here is the error message:")
+                    print(e)
+        elif((command[0] == "connect" or command[0] == "c") and command[2] == "to"):
+            try:
+                self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
+                self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
+            except Exception as e:
+                print(e)
         elif(command[0] == "build"):
             self.pModel.build()
         elif(command[0] == "list"):
             if(command[1] == "layers"):
                 for layer in self.pModel.layers:
                     print(layer.name, layer.kind)
+            else:
+                print("Invalid command please try something else")
+        else:
+            print("Invalid command please try something else")
     def getShape(self, shape):
         shape = shape.split('x')
         returnShape = []
         for i in shape:
             returnShape.append(int(i))
         return tuple(returnShape)
+    def addInputLayer(self, name, shape):
+        kerasInput = tf.keras.Input(shape=shape)
+        pLayer = PapatyaLayer(name, "input", kerasInput)
+        self.pModel.addLayer(pLayer)
+    def addDenseLayer(self, name, units):
+        kerasDense = tf.keras.layers.Dense(units)
+        pLayer = PapatyaLayer(name, "hidden", kerasDense)
+        self.pModel.addLayer(pLayer)
+    def addOutputLayer(self, name, units):
+        kerasDense = tf.keras.layers.Dense(units)
+        pLayer = PapatyaLayer(name, "output", kerasDense)
+        self.pModel.addLayer(pLayer)
+    def addConv1DLayer(self, name, filters, kernel_size):
+        kerasConv1D = tf.keras.layers.Conv1D(filters, kernel_size)
+        pLayer = PapatyaLayer(name, "hidden", kerasConv1D)
+        self.pModel.addLayer(pLayer)
+    def addConv2DLayer(self, name, filters, kernel_size):
+        kerasConv2D = tf.keras.layers.Conv2D(filters, kernel_size)
+        pLayer = PapatyaLayer(name, "hidden", kerasConv2D)
+        self.pModel.addLayer(pLayer)
+    def addFlattenLayer(self, name):
+        kerasFlatten = tf.keras.layers.Flatten()
+        pLayer = PapatyaLayer(name, "hidden", kerasFlatten)
+        self.pModel.addLayer(pLayer)
 
 cli = PapatyaCLI()
 
