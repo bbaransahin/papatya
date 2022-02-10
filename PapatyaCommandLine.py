@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from PapatyaClasses import PapatyaKernel, PapatyaLayer, PapatyaModel
 
+kernel = PapatyaKernel()
 models = []
 
 class PapatyaCLI:
@@ -21,22 +22,22 @@ class PapatyaCLI:
                     try:
                         if(command[2] == "input"):
                             name = input("layer name: ")
-                            self.addInputLayer(name, self.getShape(command[3]))
+                            kernel.addInputLayer(name, self.getShape(command[3]), self.pModel)
                         elif(command[2] == "dense"):
                             name = input("layer name: ")
-                            self.addDenseLayer(name, int(command[3]))
+                            kernel.addDenseLayer(name, int(command[3]), self.pModel)
                         elif(command[2] == "output"):
                             name = input("layer name: ")
-                            self.addOutputLayer(name, int(command[3]))
+                            kernel.addOutputLayer(name, int(command[3]), self.pModel)
                         elif(command[2] == "conv1d"):
                             name = input("layer name: ")
-                            self.addConv1DLayer(name, int(command[3]), int(command[4]))
+                            kernel.addConv1DLayer(name, int(command[3]), int(command[4]), self.pModel)
                         elif(command[2] == "conv2d"):
                             name = input("layer name: ")
-                            self.addConv2DLayer(name, int(command[3]), self.getShape(command[4]))
+                            kernel.addConv2DLayer(name, int(command[3]), self.getShape(command[4]), self.pModel)
                         elif(command[2] == "flatten"):
                             name = input("layer name: ")
-                            self.addFlattenLayer(name)
+                            kernel.addFlattenLayer(name, self.pModel)
                         else:
                             print("couldn't find a layer classified as "+command[2]+", please try something else.")
                     except Exception as e:
@@ -79,30 +80,6 @@ class PapatyaCLI:
         for i in shape:
             returnShape.append(int(i))
         return tuple(returnShape)
-    def addInputLayer(self, name, shape):
-        kerasInput = tf.keras.Input(shape=shape)
-        pLayer = PapatyaLayer(name, "input", kerasInput)
-        self.pModel.addLayer(pLayer)
-    def addDenseLayer(self, name, units):
-        kerasDense = tf.keras.layers.Dense(units)
-        pLayer = PapatyaLayer(name, "hidden", kerasDense)
-        self.pModel.addLayer(pLayer)
-    def addOutputLayer(self, name, units):
-        kerasDense = tf.keras.layers.Dense(units)
-        pLayer = PapatyaLayer(name, "output", kerasDense)
-        self.pModel.addLayer(pLayer)
-    def addConv1DLayer(self, name, filters, kernel_size):
-        kerasConv1D = tf.keras.layers.Conv1D(filters, kernel_size)
-        pLayer = PapatyaLayer(name, "hidden", kerasConv1D)
-        self.pModel.addLayer(pLayer)
-    def addConv2DLayer(self, name, filters, kernel_size):
-        kerasConv2D = tf.keras.layers.Conv2D(filters, kernel_size)
-        pLayer = PapatyaLayer(name, "hidden", kerasConv2D)
-        self.pModel.addLayer(pLayer)
-    def addFlattenLayer(self, name):
-        kerasFlatten = tf.keras.layers.Flatten()
-        pLayer = PapatyaLayer(name, "hidden", kerasFlatten)
-        self.pModel.addLayer(pLayer)
 
 cli = PapatyaCLI()
 
