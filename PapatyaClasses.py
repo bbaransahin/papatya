@@ -22,6 +22,7 @@ class PapatyaModel:
         print("A PapatyaModel named "+name+" is initialized.")
         self.name = name
         self.layers = []
+        self.kerasModel = None
     def addLayer(self, pLayer):
         self.layers.append(pLayer)
     def connectTwoLayer(self, pLayer0, pLayer1):
@@ -55,26 +56,31 @@ class PapatyaKernel:
     def __init__(self):
         print("papatya kernel initialized")
     def addInputLayer(self, name, shape, model):
-        kerasInput = tf.keras.Input(shape=shape)
+        kerasInput = tf.keras.Input(shape=shape, name=name)
         pLayer = PapatyaLayer(name, "input", kerasInput)
         model.addLayer(pLayer)
     def addDenseLayer(self, name, units, model):
-        kerasDense = tf.keras.layers.Dense(units)
+        kerasDense = tf.keras.layers.Dense(units, name=name)
         pLayer = PapatyaLayer(name, "hidden", kerasDense)
         model.addLayer(pLayer)
     def addOutputLayer(self, name, units, model):
-        kerasDense = tf.keras.layers.Dense(units)
+        kerasDense = tf.keras.layers.Dense(units, name=name)
         pLayer = PapatyaLayer(name, "output", kerasDense)
         model.addLayer(pLayer)
     def addConv1DLayer(self, name, filters, kernel_size, model):
-        kerasConv1D = tf.keras.layers.Conv1D(filters, kernel_size)
+        kerasConv1D = tf.keras.layers.Conv1D(filters, kernel_size, name=name)
         pLayer = PapatyaLayer(name, "hidden", kerasConv1D)
         model.addLayer(pLayer)
     def addConv2DLayer(self, name, filters, kernel_size, model):
-        kerasConv2D = tf.keras.layers.Conv2D(filters, kernel_size)
+        kerasConv2D = tf.keras.layers.Conv2D(filters, kernel_size, name=name)
         pLayer = PapatyaLayer(name, "hidden", kerasConv2D)
         model.addLayer(pLayer)
     def addFlattenLayer(self, name, model):
-        kerasFlatten = tf.keras.layers.Flatten()
+        kerasFlatten = tf.keras.layers.Flatten(name=name)
         pLayer = PapatyaLayer(name, "hidden", kerasFlatten)
         model.addLayer(pLayer)
+    def editLayer(self, name, model, variable_name, new_value):
+        if(model.kerasModel == None):
+            code  = "model.findLayerByName(\""+name+"\")."+variable_name+"="+str(new_value)
+            print(code)
+            exec(code)
