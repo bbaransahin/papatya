@@ -1,63 +1,78 @@
 #TODO: implement a command that shows the architecture of the model without building it
 #TODO: implement a command to edit variables of layers and model
-import sys
 
 import tensorflow as tf
 
-sys.path.append(".")
-from PapatyaClasses import PapatyaLayer
-from PapatyaClasses import PapatyaModel
+from PapatyaClasses import PapatyaKernel, PapatyaLayer, PapatyaModel
+
+models = []
 
 class PapatyaCLI:
     def __init__(self):
         print("PapatyaCLI v1")
-        self.pModel = PapatyaModel(input("Papatya Model Name: "))
+        self.pModel = None
     def executeCommand(self, command):
         command = command.split(' ')
-        if(command[0] == "help"):
-            pass
-        elif(command[0] == "add"):
-            if(command[1] == "layer" or command[1] == "l"):
+        try:
+            if(command[0] == "help"):
+                pass
+            elif(command[0] == "add"):
+                if(command[1] == "layer" or command[1] == "l"):
+                    try:
+                        if(command[2] == "input"):
+                            name = input("layer name: ")
+                            self.addInputLayer(name, self.getShape(command[3]))
+                        elif(command[2] == "dense"):
+                            name = input("layer name: ")
+                            self.addDenseLayer(name, int(command[3]))
+                        elif(command[2] == "output"):
+                            name = input("layer name: ")
+                            self.addOutputLayer(name, int(command[3]))
+                        elif(command[2] == "conv1d"):
+                            name = input("layer name: ")
+                            self.addConv1DLayer(name, int(command[3]), int(command[4]))
+                        elif(command[2] == "conv2d"):
+                            name = input("layer name: ")
+                            self.addConv2DLayer(name, int(command[3]), self.getShape(command[4]))
+                        elif(command[2] == "flatten"):
+                            name = input("layer name: ")
+                            self.addFlattenLayer(name)
+                        else:
+                            print("couldn't find a layer classified as "+command[2]+", please try something else.")
+                    except Exception as e:
+                        print("There is a problem while creating or adding the layer, here is the error message:")
+                        print(e)
+            elif((command[0] == "connect" or command[0] == "c") and command[2] == "to"):
                 try:
-                    if(command[2] == "input"):
-                        name = input("layer name: ")
-                        self.addInputLayer(name, self.getShape(command[3]))
-                    elif(command[2] == "dense"):
-                        name = input("layer name: ")
-                        self.addDenseLayer(name, int(command[3]))
-                    elif(command[2] == "output"):
-                        name = input("layer name: ")
-                        self.addOutputLayer(name, int(command[3]))
-                    elif(command[2] == "conv1d"):
-                        name = input("layer name: ")
-                        self.addConv1DLayer(name, int(command[3]), int(command[4]))
-                    elif(command[2] == "conv2d"):
-                        name = input("layer name: ")
-                        self.addConv2DLayer(name, int(command[3]), self.getShape(command[4]))
-                    elif(command[2] == "flatten"):
-                        name = input("layer name: ")
-                        self.addFlattenLayer(name)
-                    else:
-                        print("couldn't find a layer classified as "+command[2]+", please try something else.")
+                    self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
+                    self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
                 except Exception as e:
-                    print("There is a problem while creating or adding the layer, here is the error message:")
                     print(e)
-        elif((command[0] == "connect" or command[0] == "c") and command[2] == "to"):
-            try:
-                self.pModel.findLayerByName(command[1]).sendOutputTo(command[3])
-                self.pModel.findLayerByName(command[3]).getInputFrom(command[1])
-            except Exception as e:
-                print(e)
-        elif(command[0] == "build"):
-            self.pModel.build()
-        elif(command[0] == "list"):
-            if(command[1] == "layers"):
-                for layer in self.pModel.layers:
-                    print(layer.name, layer.kind)
+            elif(command[0] == "build"):
+                self.pModel.build()
+            elif(command[0] == "list"):
+                if(command[1] == "layers"):
+                    for layer in self.pModel.layers:
+                        print(layer.name, layer.kind)
+                else:
+                    print("Invalid command please try something else")
+            elif(command[0] == "create"):
+                if(command[1] == "model"):
+                    model = PapatyaModel(input("model name: "))
+                    models.append(model)
+            elif(command[0] == "set"):
+                if(command[1] == "model"):
+                    for m in models:
+                        if(m.name == command[2]):
+                            self.pModel = m
+            elif(command[0] == "edit"):
+                if(command[1] == "layer" or command[1] == "l"):
+                    for l in self.pModel.layers:
+                        pass
             else:
                 print("Invalid command please try something else")
-        else:
-            print("Invalid command please try something else")
+        except Exception as e:
+            print(e)
     def getShape(self, shape):
         shape = shape.split('x')
         returnShape = []

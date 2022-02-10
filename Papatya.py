@@ -6,3 +6,4 @@ import sys
 sys.path.append(".")
 from PapatyaClasses import PapatyaModel
 from PapatyaClasses import PapatyaLayer
+from PapatyaClasses import PapatyaKernel

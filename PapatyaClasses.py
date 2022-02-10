@@ -9,10 +9,13 @@ class PapatyaLayer:
         self.kerasLayer = kerasLayer
         self.nextLayer = None
         self.previousLayer = None
+        self.setParameters()
     def sendOutputTo(self, nextLayer):
         self.nextLayer = nextLayer
     def getInputFrom(self, previousLayer):
         self.previousLayer = previousLayer
+    def setParameters(self):
+        pass
 
 class PapatyaModel:
     def __init__(self, name):
@@ -47,3 +50,31 @@ class PapatyaModel:
         except Exception as e:
             print("There is a problem while building the Papatya Model, here is the error message:")
             print(e)
+
+class PapatyaKernel:
+    def __init__(self):
+        print("papatya kernel initialized")
+    def addInputLayer(self, name, shape, model):
+        kerasInput = tf.keras.Input(shape=shape)
+        pLayer = PapatyaLayer(name, "input", kerasInput)
+        model.addLayer(pLayer)
+    def addDenseLayer(self, name, units, model):
+        kerasDense = tf.keras.layers.Dense(units)
+        pLayer = PapatyaLayer(name, "hidden", kerasDense)
+        model.addLayer(pLayer)
+    def addOutputLayer(self, name, units, model):
+        kerasDense = tf.keras.layers.Dense(units)
+        pLayer = PapatyaLayer(name, "output", kerasDense)
+        model.addLayer(pLayer)
+    def addConv1DLayer(self, name, filters, kernel_size, model):
+        kerasConv1D = tf.keras.layers.Conv1D(filters, kernel_size)
+        pLayer = PapatyaLayer(name, "hidden", kerasConv1D)
+        model.addLayer(pLayer)
+    def addConv2DLayer(self, name, filters, kernel_size, model):
+        kerasConv2D = tf.keras.layers.Conv2D(filters, kernel_size)
+        pLayer = PapatyaLayer(name, "hidden", kerasConv2D)
+        model.addLayer(pLayer)
+    def addFlattenLayer(self, name, model):
+        kerasFlatten = tf.keras.layers.Flatten()
+        pLayer = PapatyaLayer(name, "hidden", kerasFlatten)
+        model.addLayer(pLayer)
