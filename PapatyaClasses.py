@@ -33,31 +33,37 @@ class PapatyaModel:
         for l in self.layers:
             if(l.name == name):
                 return l
-        print("Couldn't find the layer named as "+name)
         return None
     def findLayerByKind(self, kind):
         for l in self.layers:
             if(l.kind == kind):
                 return l
-        print("Couldn't find the layer in kind of "+kind)
         return None
     def build(self):
         try:
-            self.inputs = self.findLayerByKind("input").kerasLayer
+            l = None
+            self.inputs = self.findLayerByKind("input")
             if(self.inputs == None):
+                print("can't build a model without input layer")
                 return None
             for l in self.layers:
                 if(not l.nextLayer == None):
                     self.connectTwoLayer(l,self.findLayerByName(l.nextLayer))
-            self.outputs = self.findLayerByKind("output").kerasLayer
+            self.outputs = self.findLayerByKind("output")
             if(not self.outputs == None):
-                self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=self.outputs)
+                self.kerasModel = tf.keras.Model(inputs=self.inputs.kerasLayer, outputs=self.outputs.kerasLayer)
+            elif(not l == None):
+                self.kerasModel = tf.keras.Model(inputs=self.inputs.kerasLayer, outputs=l.kerasLayer)
             else:
-                self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=l)
-            print(self.kerasModel.summary())
+                self.kerasModel = tf.keras.Model(inputs=self.inputs.kerasLayer, outputs=self.inputs.kerasLayer)
+            print("model built succesfully")
         except Exception as e:
             print("There is a problem while building the Papatya Model, here is the error message:")
             print(e)
+    def printSummary(self):
+        if(self.kerasModel == None):
+            self.build()
+        print(self.kerasModel.summary())
 
 class PapatyaKernel:
     def __init__(self):
@@ -91,8 +97,13 @@ class PapatyaKernel:
             code  = "model.findLayerByName(\""+name+"\").kerasLayer."+variable_name+"="+str(new_value)
             exec(code)
         elif(model.kerasModel == None and model.findLayerByName(name).isConnected):
-            for l in model.kerasModel.layers:
-                if(l.name == name):
-                    pass
+            if(not model.build() == None):
+                code = "model.kerasModel.get_layer(name=\""+name+"\")."+variable_name+"="+str(new_value)
+                exec(code)
+                model.kerasModel = tf.keras.models.model_from_json(model.kerasModel.to_json())
+            else:
+                print("can't build a model without input layer, because of this can't edit the layer")
         elif(not model.kerasModel == None):
-            pass
+                code = "model.kerasModel.get_layer(name=\""+name+"\")."+variable_name+"="+str(new_value)
+                exec(code)
+                model.kerasModel = tf.keras.models.model_from_json(model.kerasModel.to_json())
