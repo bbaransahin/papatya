@@ -10,6 +10,7 @@ class PapatyaLayer:
         self.nextLayer = None
         self.previousLayer = None
         self.setParameters()
+        self.isConnected = False
     def sendOutputTo(self, nextLayer):
         self.nextLayer = nextLayer
     def getInputFrom(self, previousLayer):
@@ -27,6 +28,7 @@ class PapatyaModel:
         self.layers.append(pLayer)
     def connectTwoLayer(self, pLayer0, pLayer1):
         pLayer1.kerasLayer = pLayer1.kerasLayer(pLayer0.kerasLayer)
+        pLayer1.isConnected = True
     def findLayerByName(self, name):
         for l in self.layers:
             if(l.name == name):
@@ -42,11 +44,16 @@ class PapatyaModel:
     def build(self):
         try:
             self.inputs = self.findLayerByKind("input").kerasLayer
+            if(self.inputs == None):
+                return None
             for l in self.layers:
                 if(not l.nextLayer == None):
                     self.connectTwoLayer(l,self.findLayerByName(l.nextLayer))
             self.outputs = self.findLayerByKind("output").kerasLayer
-            self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=self.outputs)
+            if(not self.outputs == None):
+                self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=self.outputs)
+            else:
+                self.kerasModel = tf.keras.Model(inputs=self.inputs, outputs=l)
             print(self.kerasModel.summary())
         except Exception as e:
             print("There is a problem while building the Papatya Model, here is the error message:")
@@ -80,7 +87,12 @@ class PapatyaKernel:
         pLayer = PapatyaLayer(name, "hidden", kerasFlatten)
         model.addLayer(pLayer)
     def editLayer(self, name, model, variable_name, new_value):
-        if(model.kerasModel == None):
-            code  = "model.findLayerByName(\""+name+"\")."+variable_name+"="+str(new_value)
-            print(code)
+        if(model.kerasModel == None and (not model.findLayerByName(name).isConnected)):
+            code  = "model.findLayerByName(\""+name+"\").kerasLayer."+variable_name+"="+str(new_value)
             exec(code)
+        elif(model.kerasModel == None and model.findLayerByName(name).isConnected):
+            for l in model.kerasModel.layers:
+                if(l.name == name):
+                    pass
+        elif(not model.kerasModel == None):
+            pass
