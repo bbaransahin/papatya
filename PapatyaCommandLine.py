@@ -69,6 +69,8 @@ class PapatyaCLI:
             elif(command[0] == "edit"):
                 if(command[1] == "layer" or command[1] == "l"):
                     kernel.editLayer(command[2], self.pModel, command[3], int(command[4]))
+            elif(command[0] == "summary"):
+                self.pModel.printSummary()
             else:
                 print("Invalid command please try something else")
         except Exception as e:
