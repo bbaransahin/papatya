@@ -1,6 +1,3 @@
-#TODO: implement a command that shows the architecture of the model without building it
-#TODO: implement a command to edit variables of layers and model
-
 import tensorflow as tf
 
 from PapatyaClasses import PapatyaKernel, PapatyaLayer, PapatyaModel
