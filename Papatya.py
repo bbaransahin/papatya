@@ -1,3 +1,7 @@
+'''
+BUG: because the order of the objects on an objects list, sometimes it is possible to
+clicking throught nonvisible objects.
+'''
 from enum import Flag
 import pygame
 
@@ -15,17 +19,33 @@ def handleClick(frame, windows):
     for w in windows:
         if(w.visibility):
             for obj in w.objects:
+                obj.unclick()
+            for obj in w.objects:
                 if(obj.x < mx and obj.x+obj.width > mx and obj.y < my and obj.y+obj.height > my):
                     obj.click()
                     return
-                else:
-                    obj.unclick()
+    for obj in frame.objects:
+        obj.unclick()
     for obj in frame.objects:
         if(obj.x < mx and obj.x+obj.width > mx and obj.y < my and obj.y+obj.height > my):
             obj.click()
             return
-        else:
-            obj.unclick()
+
+def handleKeyDown(frame, windows, key):
+    for w in windows:
+        if(w.visibility):
+            for obj in w.objects:
+                if(obj.isFocus):
+                    if(key.unicode == '\x08'):
+                        obj.removeFromText()
+                    else:
+                        obj.appendToText(key.unicode)
+    for obj in frame.objects:
+        if(obj.isFocus):
+            if(key.unicode == '\x08'):
+                obj.removeFromText()
+            else:
+                obj.appendToText(key.unicode)
 
 class ScreenObject:
     def __init__(self, name, x, y, frame):
@@ -35,6 +55,7 @@ class ScreenObject:
         self.frame = frame
         self.width = 0
         self.height = 0
+        self.isFocus = False
     def blit(self):
         pass
     def click(self):
@@ -65,16 +86,24 @@ class EntryBox(ScreenObject):
         self.height = height
         self.fontSize = 30
         self.text = ""
+        self.isFocus = False
     def blit(self, screen):
-        font = pygmae.font.Font("freesansbold.ttf", self.fontSize)
+        if(self.isFocus):
+            pygame.draw.rect(screen, (100,100,200), (self.x-2, self.y-2, self.width+4, self.height+4))
+        font = pygame.font.Font("freesansbold.ttf", self.fontSize)
         pygame.draw.rect(screen, (220,220,220), (self.x, self.y, self.width, self.height))
         screen.blit(font.render(self.text, True, (15,15,15)), (self.x+5, self.y+5))
     def appendToText(self, ch):
         self.text+=ch
     def removeFromText(self):
         self.text=self.text[:-1]
+    def click(self):
+        self.isFocus = True
+    def unclick(self):
+        self.isFocus = False
 
 class SelectionMenu(ScreenObject):
+    #TODO: isExtended is not required since we implement isFocus functionalit, remove isExtended.
     def __init__(self, name, x, y, frame, width, height, items):
         super().__init__(name, x, y, frame)
         self.items = items
@@ -99,6 +128,7 @@ class SelectionMenu(ScreenObject):
             screen.blit(self.font.render(self.selectedItem, True, (15,15,15)), (self.x+5, self.y+5))
     def click(self):
         if(not self.isExtended):
+            self.isFocus = True
             self.isExtended = True
             self.height = self.itemHeight*len(self.items)
         else:
@@ -106,10 +136,12 @@ class SelectionMenu(ScreenObject):
             for i in range(len(self.items)):
                 if(my > (self.y+self.itemHeight*i) and my < (self.y+self.itemHeight*(i+1))):
                     self.selectedItem = self.items[i]
+                    self.isFocus = False
                     self.isExtended = False
                     self.height=self.itemHeight
     def unclick(self):
         if(self.isExtended):
+            self.isFocus = False
             self.isExtended=False
             self.height=self.itemHeight
     # Private Functions
@@ -153,6 +185,9 @@ class Frame:
     def blit(self, screen):
         for obj in self.objects:
             obj.blit(screen)
+        for obj in self.objects:
+            if(obj.isFocus):
+                obj.blit(screen)
     def addObj(self, obj):
         self.objects.append(obj)
 
@@ -189,6 +224,8 @@ windows = []
 newNodeWindow = Window("New Node", 400, 200)
 nodeType = SelectionMenu("nodeType", 50, 50, newNodeWindow, 300, 50, ["Input Layer", "HiddenLayer", "Output Layer"])
 newNodeWindow.addObj(nodeType)
+nameEntry = EntryBox("nameEntry", 50, 110, newNodeWindow, 300, 35)
+newNodeWindow.addObj(nameEntry)
 windows.append(newNodeWindow)
 
 # Button functions
@@ -203,6 +240,8 @@ while(isRun):
             isRun = False
         if(event.type == pygame.MOUSEBUTTONDOWN):
             handleClick(currentFrame, windows)
+        if(event.type == pygame.KEYDOWN):
+            handleKeyDown(currentFrame, windows, event)
 
     screen.fill((50,50,50))
     currentFrame.blit(screen)
