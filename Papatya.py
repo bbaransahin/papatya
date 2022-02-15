@@ -1,7 +1,3 @@
-'''
-BUG: because the order of the objects on an objects list, sometimes it is possible to
-clicking throught nonvisible objects.
-'''
 from enum import Flag
 import pygame
 
@@ -19,11 +15,19 @@ def handleClick(frame, windows):
     for w in windows:
         if(w.visibility):
             for obj in w.objects:
+                if(obj.x < mx and obj.x+obj.width > mx and obj.y < my and obj.y+obj.height > my and obj.isFocus):
+                    obj.click()
+                    return
+            for obj in w.objects:
                 obj.unclick()
             for obj in w.objects:
                 if(obj.x < mx and obj.x+obj.width > mx and obj.y < my and obj.y+obj.height > my):
                     obj.click()
                     return
+    for obj in frame.objects:
+        if(obj.x < mx and obj.x+obj.width > mx and obj.y < my and obj.y+obj.height > my and obj.isFocus):
+            obj.click()
+            return
     for obj in frame.objects:
         obj.unclick()
     for obj in frame.objects:
@@ -61,7 +65,7 @@ class ScreenObject:
     def click(self):
         pass
     def unclick(self):
-        pass
+        self.isFocus = False
 
 class Button(ScreenObject):
     def __init__(self, name, x, y, frame, width, height, text):
@@ -99,11 +103,10 @@ class EntryBox(ScreenObject):
         self.text=self.text[:-1]
     def click(self):
         self.isFocus = True
-    def unclick(self):
-        self.isFocus = False
 
 class SelectionMenu(ScreenObject):
     #TODO: isExtended is not required since we implement isFocus functionalit, remove isExtended.
+    #TODO: There is no need to get width and height as argument since it is set as the size of item strings
     def __init__(self, name, x, y, frame, width, height, items):
         super().__init__(name, x, y, frame)
         self.items = items
