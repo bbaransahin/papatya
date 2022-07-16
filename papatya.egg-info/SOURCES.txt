@@ -1,0 +1,9 @@
+README.md
+setup.py
+papatya/__init__.py
+papatya/data.py
+papatya.egg-info/PKG-INFO
+papatya.egg-info/SOURCES.txt
+papatya.egg-info/dependency_links.txt
+papatya.egg-info/requires.txt
+papatya.egg-info/top_level.txt
