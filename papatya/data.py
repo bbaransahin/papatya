@@ -62,3 +62,30 @@ def normalize(s, verbose=True):
 
     normalized = np.asarray(normalized)
     return normalized
+
+def concatenate(ndarrays, verbose=True):
+    '''
+    This function concatenates ndarrays with same length and returns it.
+    Example input ndarrays shape = [(500,4), (500,), (500,23)]
+    '''
+    # First let's check if the shape of ndarrays are proper to concatenate.
+    for i in ndarrays:
+        if(not i.shape[0] == ndarrays[0].shape[0]):
+            print("papatya: Can't concatenate shape",i.shape,"with shape",ndarrays[0].shape,"\nReturning None.")
+            return None
+    # Concatenation
+    new_data = []
+    for i in range(ndarrays[0].shape[0]):
+        new_item = []
+        for n in ndarrays:
+            if(len(n.shape) == 1):
+                new_item.append(n[i])
+            elif(len(n.shape) == 2):
+                for v in n[i]:
+                    new_item.append(v)
+            else:
+                print("papatya: Unknown shape",n.shape,"\nReturning None.")
+                return None
+        new_data.append(new_item)
+
+    return np.asarray(new_data)
