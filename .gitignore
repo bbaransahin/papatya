@@ -1,2 +1,3 @@
 papatya.egg-info
-**/__pycache__
+papatya/__pycache__
+tests/__pycache__
