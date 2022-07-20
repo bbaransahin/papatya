@@ -1,11 +1,7 @@
 import numpy as np
 import pandas as pd
 
-class Error(Exception):
-    pass
-
-class UnknownTypeError(Error):
-    pass
+from papatya import errors
 
 def nanstat_ndarray(nd, print_output=True):
     '''
@@ -43,8 +39,7 @@ def nanstat_ndarray(nd, print_output=True):
             print("Column["+str(i)+"] nan values:", str(c_columns[i])+"/"+str(nd.shape[0]), "%"+str(c_columns[i]/float(nd.shape[0])*100), "is nan values.")
             return_val.append(c_columns[i])
     else:
-        print("Unknown shape", nd.shape,"returning None, None.")
-        return None, None
+        raise errors.InvalidShape("Given ndarray's shape must be 1-D or 2-D but found "+str(len(nd.shape))+"-D.")
 
     return np.asarray(return_val)
 
@@ -84,7 +79,7 @@ def get_max_min(s, print_output=True):
                 if (j < min_val):
                     min_val = j
     else:
-        raise UnknownTypeError
+        raise errors.UnknownTypeError("Given data type is unknown. Found data type "+str(type(s))+".")
 
     if (print_output):
         print('max, min = ('+str(min_val)+',',str(max_val)+')')

@@ -1,10 +1,27 @@
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
+
+from papatya import errors
 
 def to_onehot(s, verbose=True):
     '''
     This function transforms a data (ndarray, pandas.Series, etc.) to onehot format and returns.
+    Implemented data types:
+        numpy.ndarray
+        pandas.core.series.Series
+        list
     '''
+    # Let's check if the given data shape is valid
+    if (type(s) == np.ndarray and len(s.shape) == 1):
+        pass
+    elif (type(s) == pd.core.series.Series):
+        pass
+    elif (type(s) == list):
+        pass
+    else:
+        raise errors.UnknownTypeError("Given data has unknown type. Given data type:"+str(type(s)))
+
     vals = []
     onehot = []
 
@@ -45,6 +62,16 @@ def normalize(s, verbose=True):
     '''
     This function normalizes a data between 0 and 1.
     '''
+    # Let's check if the given data shape is valid
+    if (type(s) == np.ndarray and len(s.shape) == 1):
+        pass
+    elif (type(s) == pd.core.series.Series):
+        pass
+    elif (type(s) == list):
+        pass
+    else:
+        raise errors.UnknownTypeError("Given data has unknown type. Given data type:"+str(type(s)))
+
     normalized = []
     max_val = s[0]
     min_val = s[0]
@@ -71,8 +98,7 @@ def concatenate(ndarrays, verbose=True):
     # First let's check if the shape of ndarrays are proper to concatenate.
     for i in ndarrays:
         if(not i.shape[0] == ndarrays[0].shape[0]):
-            print("papatya: Can't concatenate shape",i.shape,"with shape",ndarrays[0].shape,"\nReturning None.")
-            return None
+            raise errors.InvalidShape("Can't concatenate ndarrays with different lengths.")
     # Concatenation
     new_data = []
     for i in range(ndarrays[0].shape[0]):
@@ -84,8 +110,7 @@ def concatenate(ndarrays, verbose=True):
                 for v in n[i]:
                     new_item.append(v)
             else:
-                print("papatya: Unknown shape",n.shape,"\nReturning None.")
-                return None
+                raise errors.InvalidShape("Given ndarray has to be 1-D or 2-D, but found", str(len(n.shape))+"-D ndarray.")
         new_data.append(new_item)
 
     return np.asarray(new_data)

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from papatya import analyze as an
+from papatya import errors
 
 def test_nanstat_ndarray():
     # 1-D test
@@ -22,6 +23,15 @@ def test_nanstat_ndarray():
     assert res[3] == 1
     assert res[4] == 1
     assert res[5] == 2
+    a = np.asarray([
+        [[1, 2], [3, 4]],
+        [[5, 6], [7, 8]]
+        ])
+    try:
+        res = an.nanstat_ndarray(a)
+        assert False
+    except errors.InvalidShape:
+        assert True
 
 def test_get_max_min():
     # 1-D test
@@ -54,5 +64,5 @@ def test_get_max_min():
     try:
         min_val, max_val = an.get_max_min(a)
         assert False
-    except an.UnknownTypeError:
+    except errors.UnknownTypeError:
         assert True
