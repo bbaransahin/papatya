@@ -1,6 +1,12 @@
 import numpy as np
 import pandas as pd
 
+class Error(Exception):
+    pass
+
+class UnknownTypeError(Error):
+    pass
+
 def nanstat_ndarray(nd, print_output=True):
     '''
     This function analyzes the ndarray (or list) and prints results (if print_output parameter left as True).
@@ -37,7 +43,50 @@ def nanstat_ndarray(nd, print_output=True):
             print("Column["+str(i)+"] nan values:", str(c_columns[i])+"/"+str(nd.shape[0]), "%"+str(c_columns[i]/float(nd.shape[0])*100), "is nan values.")
             return_val.append(c_columns[i])
     else:
-        print("Unknown shape", nd.shape,"returning None.")
-        return None
+        print("Unknown shape", nd.shape,"returning None, None.")
+        return None, None
 
     return np.asarray(return_val)
+
+def get_max_min(s, print_output=True):
+    '''
+    This function takes an iterable array like object and returns min and max values of it.
+    It works with 1-D and 2-D arrays.
+    implemented 2-D's:
+        pandas.core.frame.DataFrame
+        numpy.ndarray
+    Note:
+        Using builtin functions as max() and min() is valid for 1-D iterables but won't work
+    with 2-D iterables, so this function provides a more generalised functionality.
+    '''
+    if (
+            (type(s) == np.ndarray and len(s.shape) == 1)
+            or type(s) == pd.core.series.Series
+            ):
+        max_val = max(s)
+        min_val = min(s)
+    elif (type(s) == np.ndarray and len(s.shape) == 2):
+        max_val = s[0][0]
+        min_val = s[0][0]
+        for i in s:
+            for j in i:
+                if (j > max_val):
+                    max_val = j
+                if (j < min_val):
+                    min_val = j
+    elif (type(s) == pd.core.frame.DataFrame):
+        max_val = s[0][0]
+        min_val = s[0][0]
+        for i in s:
+            for j in s[i]:
+                if (j > max_val):
+                    max_val = j
+                if (j < min_val):
+                    min_val = j
+    else:
+        raise UnknownTypeError
+
+    if (print_output):
+        print('max, min = ('+str(min_val)+',',str(max_val)+')')
+
+    return min_val, max_val
